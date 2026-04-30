@@ -195,7 +195,7 @@ namespace smv
 				reserve_back(capacity() == 0 ? 1 : static_cast<size_t>(std::ceil(capacity() * _growth_factor)));
 			}
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(std::forward<T>(value)); // Call object constructor
+			new (_Plast) T(std::forward<U>(value)); // Call object constructor
 			++_Plast;
 		}
 		// list
@@ -324,12 +324,18 @@ namespace smv
 
 				if (Ptarget < _Plast)
 				{
-					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = std::forward<T>(value);
+					new (_Plast) T(std::move(*(_Plast - 1)));
+					
+					if (_Plast - 1 > Ptarget) 
+					{
+						std::move_backward(Ptarget, _Plast - 1, _Plast);
+					}
+
+					*Ptarget = std::forward<U>(value);
 				}
 				else
 				{
-					new (Ptarget) T(std::forward<T>(value));
+					new (Ptarget) T(std::forward<U>(value));
 				}
 
 				++_Plast;
@@ -340,14 +346,20 @@ namespace smv
 				--_Pfirst;
 				T* Ptarget = _Pfirst + index;
 
-				if (index > 0)
+				if (Ptarget > _Pfirst)
 				{
-					std::move(_Pfirst + 1, Ptarget + 1, _Pfirst);
-					*Ptarget = std::move(value);
+					new (_Pfirst) T(std::move(*(_Pfirst + 1)));
+
+					if (Ptarget > _Pfirst + 1) 
+					{
+						std::move(_Pfirst + 2, Ptarget + 1, _Pfirst + 1);
+					}
+
+					*Ptarget = std::forward<U>(value);
 				}
 				else
 				{
-					new (Ptarget) T(std::move(value));
+					new (Ptarget) T(std::forward<U>(value));
 				}
 			}
 		}
@@ -368,12 +380,18 @@ namespace smv
 
 				if (Ptarget < _Plast)
 				{
-					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = std::forward<T>(value);
+					new (_Plast) T(std::move(*(_Plast - 1)));
+					
+					if (_Plast - 1 > Ptarget) 
+					{
+						std::move_backward(Ptarget, _Plast - 1, _Plast);
+					}
+
+					*Ptarget = std::forward<U>(value);
 				}
 				else
 				{
-					new (Ptarget) T(std::forward<T>(value));
+					new (Ptarget) T(std::forward<U>(value));
 				}
 
 				++_Plast;
@@ -384,14 +402,20 @@ namespace smv
 				--_Pfirst;
 				T* Ptarget = _Pfirst + index;
 
-				if (index > 0)
+				if (Ptarget > _Pfirst)
 				{
-					std::move(_Pfirst + 1, Ptarget + 1, _Pfirst);
-					*Ptarget = std::move(value);
+					new (_Pfirst) T(std::move(*(_Pfirst + 1)));
+
+					if (Ptarget > _Pfirst + 1) 
+					{
+						std::move(_Pfirst + 2, Ptarget + 1, _Pfirst + 1);
+					}
+
+					*Ptarget = std::forward<U>(value);
 				}
 				else
 				{
-					new (Ptarget) T(std::move(value));
+					new (Ptarget) T(std::forward<U>(value));
 				}
 			}
 		}
@@ -446,7 +470,7 @@ namespace smv
 				reserve_back(capacity() == 0 ? 1 : capacity() + cap);
 			}
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(std::forward<T>(value)); // Call object constructor
+			new (_Plast) T(std::forward<U>(value)); // Call object constructor
 			++_Plast;
 		}
 
@@ -475,7 +499,7 @@ namespace smv
 
 			--_Pfirst;
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(std::forward<T>(value)); // Call object constructor
+			new (_Pfirst) T(std::forward<U>(value)); // Call object constructor
 		}
 
 
@@ -492,7 +516,7 @@ namespace smv
 
 			--_Pfirst;
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(std::forward<T>(value)); // Call object constructor
+			new (_Pfirst) T(std::forward<U>(value)); // Call object constructor
 		}
 
 		// list
