@@ -51,3 +51,6 @@ Used in the overloads of the following methods: `push_back(), push_front(), inse
 # Extra
 - Required C++17 or later
 - Namespace `smv::`
+
+# Special Thanks
+- **cubekii** - optimizing the logic of l and r value links. Writing a CMake template.
