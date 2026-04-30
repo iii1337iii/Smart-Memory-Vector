@@ -1,6 +1,7 @@
 # Smart Memory Vector  
 ## Introduction  
 This library is currently in an early release stage and may contain some bugs or unexpected behavior. I would be very grateful for any feedback you can provide. I am also open to hearing any suggestions you may have for improvements.  
+Telegram: `@I_III_III_III_III_III_III_I`
 
 ## Description
 SMV is a unique variation of a dynamic array that provides the user with a multitude of ways to control memory and work with indices.  
