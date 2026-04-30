@@ -69,20 +69,9 @@ namespace smv
 			std::uninitialized_copy(list.begin(), list.end(), _Pfirst);
 		}
 
-		// smvector<T> smv2 = smv1;   or   smvector<T> smv2(smv1);
-		smvector(const smvector& vec_origin) :
-			_alloc(vec_origin._alloc), // Use the same memory allocation mechanism as in the original smv
-			_Pstart(_alloc.allocate(vec_origin.capacity())),
-			_Pfirst(_Pstart + (vec_origin._Pfirst - vec_origin._Pstart)),
-			_Plast(_Pfirst + vec_origin.size()),
-			_Pend(_Pstart + vec_origin.capacity())
-		{
-			std::uninitialized_copy(vec_origin._Pfirst, vec_origin._Plast, _Pfirst);
-		}
-
 		// smvector<T> smv2(std::move(smv1));
 		smvector(smvector&& vec_origin) noexcept :
-			_alloc(std::move(vec_origin._alloc)), // Use the same memory allocation mechanism as in the original smv
+			_alloc(std::forward<T>(vec_origin._alloc)), // Use the same memory allocation mechanism as in the original smv
 			_Pstart(vec_origin._Pstart),
 			_Pfirst(vec_origin._Pfirst),
 			_Plast(vec_origin._Plast),
@@ -90,8 +79,6 @@ namespace smv
 		{
 			vec_origin._Pstart = vec_origin._Pfirst = vec_origin._Plast = vec_origin._Pend = nullptr;
 		}
-
-
 
 		//====================DESTRUCTOR====================
 		~smvector() noexcept
@@ -199,29 +186,16 @@ namespace smv
 			}
 		}
 
-
-
-		//---push_back---
-		// l-value
-		void push_back(const T& value)
-		{
-			if (_Plast == _Pend)
-			{
-				reserve_back(capacity() == 0 ? 1 : static_cast<size_t>(std::ceil(capacity() * _growth_factor)));
-			}
-			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(value); // Call object constructor 
-			++_Plast;
-		}
 		// r-value
-		void push_back(T&& value)
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void push_back(U&& value)
 		{
 			if (_Plast == _Pend)
 			{
 				reserve_back(capacity() == 0 ? 1 : static_cast<size_t>(std::ceil(capacity() * _growth_factor)));
 			}
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(std::move(value)); // Call object constructor 
+			new (_Plast) T(std::forward<T>(value)); // Call object constructor
 			++_Plast;
 		}
 		// list
@@ -335,10 +309,9 @@ namespace smv
 		}
 
 
-
-		//---insert---
-		// l-value
-		void insert(size_t index, const T& value)
+		// r-value
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void insert(size_t index, U&& value)
 		{
 			if (_Pfirst == _Pstart && _Plast == _Pend)
 			{
@@ -352,11 +325,11 @@ namespace smv
 				if (Ptarget < _Plast)
 				{
 					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = value;
+					*Ptarget = std::forward<T>(value);
 				}
 				else
 				{
-					new (Ptarget) T(value);
+					new (Ptarget) T(std::forward<T>(value));
 				}
 
 				++_Plast;
@@ -370,57 +343,19 @@ namespace smv
 				if (index > 0)
 				{
 					std::move(_Pfirst + 1, Ptarget + 1, _Pfirst);
-					*Ptarget = value;
+					*Ptarget = std::move(value);
 				}
 				else
 				{
-					new (Ptarget) T(value);
+					new (Ptarget) T(std::move(value));
 				}
 			}
 		}
+
 		// r-value
-		void insert(size_t index, T&& value)
-		{
-			if (_Pfirst == _Pstart && _Plast == _Pend)
-			{
-				reserve_back(capacity() == 0 ? 1 : static_cast<size_t>(std::ceil(capacity() * _growth_factor)));
-			}
-			// right side
-			if (((_Plast < _Pend) && (index > size() / 2)) || _Pfirst == _Pstart)
-			{
-				T* Ptarget = _Pfirst + index;
 
-				if (Ptarget < _Plast)
-				{
-					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = std::move(value);
-				}
-				else
-				{
-					new (Ptarget) T(std::move(value));
-				}
-
-				++_Plast;
-			}
-			// left side
-			else
-			{
-				--_Pfirst;
-				T* Ptarget = _Pfirst + index;
-
-				if (index > 0)
-				{
-					std::move(_Pfirst + 1, Ptarget + 1, _Pfirst);
-					*Ptarget = std::move(value);
-				}
-				else
-				{
-					new (Ptarget) T(std::move(value));
-				}
-			}
-		}
-		// l-value
-		void insert(size_t index, const T& value, size_t cap)
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void insert(size_t index, U&& value, size_t cap)
 		{
 			if (_Pfirst == _Pstart && _Plast == _Pend)
 			{
@@ -434,52 +369,11 @@ namespace smv
 				if (Ptarget < _Plast)
 				{
 					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = value;
+					*Ptarget = std::forward<T>(value);
 				}
 				else
 				{
-					new (Ptarget) T(value);
-				}
-
-				++_Plast;
-			}
-			// left side
-			else
-			{
-				--_Pfirst;
-				T* Ptarget = _Pfirst + index;
-
-				if (index > 0)
-				{
-					std::move(_Pfirst + 1, Ptarget + 1, _Pfirst);
-					*Ptarget = value;
-				}
-				else
-				{
-					new (Ptarget) T(value);
-				}
-			}
-		}
-		// r-value
-		void insert(size_t index, T&& value, size_t cap)
-		{
-			if (_Pfirst == _Pstart && _Plast == _Pend)
-			{
-				reserve_back(capacity() == 0 ? 1 : capacity() + cap);
-			}
-			// right side
-			if (((_Plast < _Pend) && (index > size() / 2)) || _Pfirst == _Pstart)
-			{
-				T* Ptarget = _Pfirst + index;
-
-				if (Ptarget < _Plast)
-				{
-					std::move_backward(Ptarget, _Plast, _Plast + 1);
-					*Ptarget = std::move(value);
-				}
-				else
-				{
-					new (Ptarget) T(std::move(value));
+					new (Ptarget) T(std::forward<T>(value));
 				}
 
 				++_Plast;
@@ -541,24 +435,9 @@ namespace smv
 		}
 
 
-
-		//---push_back---
-		// l-value + memory control
-		void push_back(const T& value, size_t cap)
-		{
-			if (cap == 0) { cap = 1; }
-
-			if (_Plast == _Pend)
-			{
-				reserve_back(capacity() == 0 ? 1 : capacity() + cap);
-			}
-			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(value); // Call object constructor 
-			++_Plast;
-		}
-
 		// r-value + memory control
-		void push_back(T&& value, size_t cap)
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void push_back(U&& value, size_t cap)
 		{
 			if (cap == 0) { cap = 1; }
 
@@ -567,7 +446,7 @@ namespace smv
 				reserve_back(capacity() == 0 ? 1 : capacity() + cap);
 			}
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Plast) T(std::move(value)); // Call object constructor 
+			new (_Plast) T(std::forward<T>(value)); // Call object constructor
 			++_Plast;
 		}
 
@@ -585,23 +464,9 @@ namespace smv
 		}
 
 
-
-		//---push_front---
-		// l-value
-		void push_front(const T& value)
-		{
-			if (_Pfirst == _Pstart)
-			{
-				reserve_front(_Pfirst == nullptr ? 1 : static_cast<size_t>(std::ceil(capacity() * _growth_factor)));
-			}
-
-			--_Pfirst;
-			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(value); // Call object constructor
-		}
-
 		// r-value
-		void push_front(T&& value)
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void push_front(U&& value)
 		{
 			if (_Pfirst == _Pstart)
 			{
@@ -610,26 +475,13 @@ namespace smv
 
 			--_Pfirst;
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(std::move(value)); // Call object constructor
+			new (_Pfirst) T(std::forward<T>(value)); // Call object constructor
 		}
 
-		// l-value + memory control
-		void push_front(const T& value, size_t cap)
-		{
-			if (cap == 0) { cap = 1; }
-
-			if (_Pfirst == _Pstart)
-			{
-				reserve_front(_Pfirst == nullptr ? 1 : capacity() + cap);
-			}
-
-			--_Pfirst;
-			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(value); // Call object constructor
-		}
 
 		// r-value + memory control
-		void push_front(T&& value, size_t cap)
+		template<typename U, typename = std::enable_if_t<std::is_convertible_v<U, T>>>
+		void push_front(U&& value, size_t cap)
 		{
 			if (cap == 0) { cap = 1; }
 
@@ -640,7 +492,7 @@ namespace smv
 
 			--_Pfirst;
 			// Memory has been allocated but nothing has been initialized within it
-			new (_Pfirst) T(std::move(value)); // Call object constructor
+			new (_Pfirst) T(std::forward<T>(value)); // Call object constructor
 		}
 
 		// list
