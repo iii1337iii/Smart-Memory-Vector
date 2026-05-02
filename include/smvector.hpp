@@ -69,9 +69,20 @@ namespace smv
 			std::uninitialized_copy(list.begin(), list.end(), _Pfirst);
 		}
 
+		// smvector<T> smv2 = smv1;   or   smvector<T> smv2(smv1);
+		smvector(const smvector& vec_origin) :
+			_alloc(vec_origin._alloc), // Use the same memory allocation mechanism as in the original smv
+			_Pstart(_alloc.allocate(vec_origin.capacity())),
+			_Pfirst(_Pstart + (vec_origin._Pfirst - vec_origin._Pstart)),
+			_Plast(_Pfirst + vec_origin.size()),
+			_Pend(_Pstart + vec_origin.capacity())
+		{
+			std::uninitialized_copy(vec_origin._Pfirst, vec_origin._Plast, _Pfirst);
+		}
+
 		// smvector<T> smv2(std::move(smv1));
 		smvector(smvector&& vec_origin) noexcept :
-			_alloc(std::forward<T>(vec_origin._alloc)), // Use the same memory allocation mechanism as in the original smv
+			_alloc(std::move(vec_origin._alloc)), // Use the same memory allocation mechanism as in the original smv
 			_Pstart(vec_origin._Pstart),
 			_Pfirst(vec_origin._Pfirst),
 			_Plast(vec_origin._Plast),
