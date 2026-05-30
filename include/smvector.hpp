@@ -1,6 +1,6 @@
 //  ____  __  ____  __ 
 // / ___)(  \/  \ \/ /  Smart Memory Vector
-// \___ \ )    ( \  /   version 1.0.0
+// \___ \ )    ( \  /   version 1.0.1
 // (____/(_/\/\_) \/    https://github.com/iii1337iii/Smart-Memory-Vector
 
 
@@ -593,5 +593,5 @@ namespace smv
 
 //  ____  __  ____  __ 
 // / ___)(  \/  \ \/ /  Smart Memory Vector
-// \___ \ )    ( \  /   version 1.0.0
+// \___ \ )    ( \  /   version 1.0.1
 // (____/(_/\/\_) \/    https://github.com/iii1337iii/Smart-Memory-Vector
